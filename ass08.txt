@@ -107,3 +107,10 @@ int main() {
 
     return 0;
 }
+
+
+
+Number of requests: 8
+Enter requests: 98 183 37 122 14 124 65 67
+Initial head: 53
+Total tracks: 200

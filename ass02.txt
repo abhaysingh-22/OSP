@@ -92,3 +92,12 @@ int main() {
     }
     return 0;
 }
+
+
+
+// Enter number of integers: 5
+// Enter integers: 64 25 12 22 11
+
+
+g++ ass02.cpp -o ass02
+./ass02

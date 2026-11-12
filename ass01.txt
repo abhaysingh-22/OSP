@@ -78,3 +78,9 @@ do
 
     esac
 done
+
+
+
+chmod +x ass01.sh
+./ass01.sh
+you can direclty run this -> bash ass01.sh
