@@ -1,0 +1,94 @@
+// FORK, WAIT, Zombie and Orphan demonstration
+#include <iostream>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <string>
+using namespace std;
+
+// Bubble sort (used by parent)
+void bubble(int a[], int n) {
+    for (int i = 0; i < n - 1; i++)
+        for (int j = 0; j < n - i - 1; j++)
+            if (a[j] > a[j + 1]) swap(a[j], a[j + 1]);
+}
+
+// Selection sort (used by child)
+void selection(int a[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        int m = i;
+        for (int j = i + 1; j < n; j++)
+            if (a[j] < a[m]) m = j;
+        swap(a[i], a[m]);
+    }
+}
+
+void show(const char *who, int a[], int n) {
+    cout << who << ": ";
+    for (int i = 0; i < n; i++) cout << a[i] << " ";
+    cout << endl;
+}
+
+int main() {
+    int n, ch;
+    cout << "Enter number of integers: ";
+    cin >> n;
+    int a[n], b[n];
+    cout << "Enter integers: ";
+    for (int i = 0; i < n; i++) { cin >> a[i]; b[i] = a[i]; }
+
+    cout << "\n1. Normal (fork + wait)\n2. Zombie\n3. Orphan\nChoice: ";
+    cin >> ch;
+
+    pid_t pid = fork();                       // create child process
+    if (pid < 0) { cout << "Fork failed\n"; return 1; }
+
+    // ---------- 1. NORMAL: parent sorts, waits for child ----------
+    if (ch == 1) {
+        if (pid == 0) {                       // child
+            selection(b, n);
+            show("Child  (selection sort)", b, n);
+            exit(0);
+        } else {                              // parent
+            bubble(a, n);
+            show("Parent (bubble sort)   ", a, n);
+            wait(NULL);                       // wait for child to finish
+            cout << "Child finished, parent exiting.\n";
+        }
+    }
+
+    // ---------- 2. ZOMBIE: child exits, parent does NOT call wait() ----------
+    else if (ch == 2) {
+        if (pid == 0) {                       // child
+            selection(b, n);
+            show("Child  (selection sort)", b, n);
+            cout << "Child exiting -> it becomes ZOMBIE (parent not waiting)\n";
+            exit(0);
+        } else {                              // parent
+            sleep(2);                         // child is now dead but not reaped
+            string cmd = "ps -o pid,ppid,stat,cmd -p " + to_string(pid);
+            cout << "\nChild state (look for 'Z' = zombie):\n";
+            system(cmd.c_str());
+            sleep(8);                         // keep parent alive for a while
+            wait(NULL);                       // finally reap the zombie
+            cout << "Zombie removed by wait().\n";
+        }
+    }
+
+    // ---------- 3. ORPHAN: parent exits before child ----------
+    else if (ch == 3) {
+        if (pid == 0) {                       // child
+            cout << "Child : PID = " << getpid() << ", Parent PID = " << getppid() << endl;
+            sleep(3);                         // parent will exit meanwhile
+            cout << "Child is now ORPHAN. New Parent PID = " << getppid()
+                 << " (init/systemd adopted it)\n";
+            selection(b, n);
+            show("Child  (selection sort)", b, n);
+        } else {                              // parent
+            bubble(a, n);
+            show("Parent (bubble sort)   ", a, n);
+            cout << "Parent exiting without waiting.\n";
+            exit(0);
+        }
+    }
+    return 0;
+}

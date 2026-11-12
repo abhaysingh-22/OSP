@@ -1,0 +1,80 @@
+
+FILE="addressbook.txt"
+
+while true;
+do
+    echo
+    echo "a)create address book"
+    echo "b)view address book"
+    echo "c)insert a record"
+    echo "d)delete a record"
+    echo "e)modify a record"
+    echo "f)exit"
+
+    read -p "enter your choice: " ch
+
+    case $ch in
+
+    a)
+        touch $FILE
+        echo "address book is created"
+        ;;
+
+    b)
+        if [ -s $FILE ]; then
+            echo "name : phone : email"
+            cat $FILE
+        else
+            echo "address book is empty or not created"
+        fi
+        ;;
+
+    c)
+        read -p "name: " name
+        read -p "phone: " phone
+        read -p "email: " email
+
+        echo "$name: $phone: $email" >> $FILE
+        echo "record inserted"
+        ;;
+
+    d)
+        read -p "enter name to delete: " name
+
+        if grep -q "^$name:" $FILE; then
+            sed -i.bak "/^$name:/d" $FILE
+            rm -f "$FILE.bak"
+            echo "record deleted"
+        else
+            echo "record not found"
+        fi
+        ;;
+
+    e)
+        read -p "enter name to modify: " oldname
+
+        if grep -q "^$oldname:" $FILE; then
+            read -p "new name: " name
+            read -p "new phone: " phone
+            read -p "new email: " email
+
+            sed -i.bak "s/^$oldname:.*/$name: $phone: $email/" $FILE
+            rm -f "$FILE.bak"
+
+            echo "record modified"
+        else
+            echo "record not found"
+        fi
+        ;;
+
+    f)
+        echo "thank you and bye"
+        exit 0
+        ;;
+
+    *)
+        echo "invalid choice"
+        ;;
+
+    esac
+done

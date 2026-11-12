@@ -1,0 +1,109 @@
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+int head, tracks;
+vector<int> req;
+
+void display(vector<int> order) {
+    int total = 0, cur = head;
+
+    cout << "Order: " << head;
+
+    for (int x : order) {
+        total += abs(x - cur);
+        cout << " -> " << x;
+        cur = x;
+    }
+
+    cout << "\nTotal movement: " << total << endl;
+}
+
+// SSTF - Shortest Seek Time First
+void sstf() {
+    vector<int> r = req, order;
+    int cur = head;
+
+    while (!r.empty()) {
+        int pos = 0;
+
+        for (int i = 1; i < r.size(); i++) {
+            if (abs(r[i] - cur) < abs(r[pos] - cur))
+                pos = i;
+        }
+
+        cur = r[pos];
+        order.push_back(cur);
+        r.erase(r.begin() + pos);
+    }
+
+    display(order);
+}
+
+// SCAN - Move right, then left
+void scan() {
+    vector<int> r = req, order;
+    sort(r.begin(), r.end());
+
+    for (int x : r)
+        if (x >= head)
+            order.push_back(x);
+
+    order.push_back(tracks - 1);
+
+    for (int i = r.size() - 1; i >= 0; i--)
+        if (r[i] < head)
+            order.push_back(r[i]);
+
+    display(order);
+}
+
+// C-LOOK - Move right, jump to lowest request
+void clook() {
+    vector<int> r = req, order;
+    sort(r.begin(), r.end());
+
+    for (int x : r)
+        if (x >= head)
+            order.push_back(x);
+
+    for (int x : r)
+        if (x < head)
+            order.push_back(x);
+
+    display(order);
+}
+
+int main() {
+    int n, ch;
+
+    cout << "Number of requests: ";
+    cin >> n;
+
+    req.resize(n);
+
+    cout << "Enter requests: ";
+    for (int &x : req)
+        cin >> x;
+
+    cout << "Initial head: ";
+    cin >> head;
+
+    cout << "Total tracks: ";
+    cin >> tracks;
+
+    do {
+        cout << "\n1.SSTF  2.SCAN  3.C-LOOK  4.Exit\n";
+        cout << "Choice: ";
+        cin >> ch;
+
+        if (ch == 1) sstf();
+        else if (ch == 2) scan();
+        else if (ch == 3) clook();
+
+    } while (ch != 4);
+
+    return 0;
+}
